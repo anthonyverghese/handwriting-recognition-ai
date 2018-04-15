@@ -12,7 +12,6 @@ from keras.utils import np_utils
 import cv2
 
 
-
 # fix random seed for reproducibility
 seed = 7
 numpy.random.seed(seed)
@@ -47,18 +46,23 @@ def baseline_model():
 model = baseline_model()
 # Fit the model
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=200, verbose=2)
+
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=0)
-# print("Baseline Error: %.2f%%" % (100-scores[1]*100))
+print("Baseline Error: %.2f%%" % (100-scores[1]*100))
 
-img_pred = cv2.imread('digits/4.png', 0);
+img_pred = cv2.imread('digits/3.png', 0);
+
+img_pred = cv2.bitwise_not(img_pred)
 
 img_pred = cv2.resize(img_pred, (28, 28))
 
 img_pred = img_pred.reshape(1, 784).astype('float32')
+
 img_pred = img_pred / 255
 
 pred = model.predict_classes(img_pred)
-pred_proba = model.predict_proba(img_pred)
-pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
-print (pred[0], "with probability of ", pred_proba)
+print pred[0]
+# pred_proba = model.predict_proba(img_pred)
+# pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
+# print (pred[0], "with probability of ", pred_proba)
