@@ -3,6 +3,9 @@
 #haven't gotten a single example correct but w/e I guess
 #probably need to "pip install" some stuff to get it to run
 
+
+
+
 import numpy
 from keras.datasets import mnist
 from keras.models import Sequential
