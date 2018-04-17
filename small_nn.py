@@ -10,6 +10,7 @@ from keras.layers import Dense
 from keras.layers import Dropout
 from keras.utils import np_utils
 import cv2
+import os
 
 
 # fix random seed for reproducibility
@@ -51,18 +52,15 @@ model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_s
 scores = model.evaluate(X_test, y_test, verbose=0)
 print("Baseline Error: %.2f%%" % (100-scores[1]*100))
 
-img_pred = cv2.imread('digits/3.png', 0);
+for filename in os.listdir('digits'):
+	if filename.endswith(".png"):
+		img_pred = cv2.imread("digits/" + filename, 0);
+		img_pred = cv2.bitwise_not(img_pred)
+		img_pred = cv2.resize(img_pred, (28, 28))
+		img_pred = img_pred.reshape(1, 784).astype('float32')
+		img_pred = img_pred / 255
+		pred = model.predict_classes(img_pred)
 
-img_pred = cv2.bitwise_not(img_pred)
-
-img_pred = cv2.resize(img_pred, (28, 28))
-
-img_pred = img_pred.reshape(1, 784).astype('float32')
-
-img_pred = img_pred / 255
-
-pred = model.predict_classes(img_pred)
-print pred[0]
-# pred_proba = model.predict_proba(img_pred)
-# pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
-# print (pred[0], "with probability of ", pred_proba)
+		pred_proba = model.predict_proba(img_pred)
+		pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
+		print ("Filename: " + filename + " is a " + str(pred[0]) + " with probability " + str(pred_proba))
