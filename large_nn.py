@@ -66,7 +66,7 @@ img_pred = img_pred.reshape(28, 28, -1)
 img_pred = img_pred.reshape(1, 1, 28, 28)
 
 pred = model.predict_classes(img_pred)
-print pred[0]
+print (pred[0])
 # pred_proba = model.predict_proba(img_pred)
 # pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
 # print (pred[0], "with probability of ", pred_proba)
