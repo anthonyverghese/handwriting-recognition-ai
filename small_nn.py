@@ -40,6 +40,7 @@ num_classes = y_test.shape[1]
 def baseline_model():
 	# create model
 	model = Sequential()
+	# model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='sigmoid'))
 	model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='relu'))
 	model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
 	# Compile model
@@ -55,33 +56,31 @@ model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_s
 scores = model.evaluate(X_test, y_test, verbose=0)
 print("Baseline Error: %.2f%%" % (100-scores[1]*100))
 
-<<<<<<< HEAD
+num_correct = 0
+total_count = 0
+
 for filename in os.listdir('digits'):
 	if filename.endswith(".png"):
+		total_count += 1
 		img_pred = cv2.imread("digits/" + filename, 0);
 		img_pred = cv2.bitwise_not(img_pred)
 		img_pred = cv2.resize(img_pred, (28, 28))
+
+		cv2.imshow(filename, img_pred)
+		cv2.waitKey(500)
+		cv2.destroyAllWindows()
+
 		img_pred = img_pred.reshape(1, 784).astype('float32')
 		img_pred = img_pred / 255
 		pred = model.predict_classes(img_pred)
 
 		pred_proba = model.predict_proba(img_pred)
 		pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
-		print ("Filename: " + filename + " is a " + str(pred[0]) + " with probability " + str(pred_proba))
-=======
-img_pred = cv2.imread('digits/3.png', 0);
 
-img_pred = cv2.bitwise_not(img_pred)
+		result = "incorrect"
+		if (str(pred[0]) == filename[:1]):
+			result = "CORRECT"
+			num_correct += 1
+		print ("Filename: " + filename + " is a " + str(pred[0]) + " with probability" + str(pred_proba) + " " + result)
 
-img_pred = cv2.resize(img_pred, (28, 28))
-
-img_pred = img_pred.reshape(1, 784).astype('float32')
-
-img_pred = img_pred / 255
-
-pred = model.predict_classes(img_pred)
-print (pred[0])
-# pred_proba = model.predict_proba(img_pred)
-# pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
-# print (pred[0], "with probability of ", pred_proba)
->>>>>>> e9371138a313f85e44cf9dbd590652ed58d78501
+print (str(num_correct) + " out of " + str(total_count) + " correct.")
