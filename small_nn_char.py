@@ -25,26 +25,26 @@ for filename in os.listdir('chars'):
     letters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", \
     "s", "t", "u", "v", "w", "x", "y", "z"]
     if filename.endswith(".png"):
-		total_count += 1
-		img_pred = cv2.imread("chars/" + filename, 0);
-		img_pred = cv2.bitwise_not(img_pred)
-		img_pred = cv2.resize(img_pred, (28, 28))
+        total_count += 1
+        img_pred = cv2.imread("chars/" + filename, 0);
+        img_pred = cv2.bitwise_not(img_pred)
+        img_pred = cv2.resize(img_pred, (28, 28))
 
-		cv2.imshow(filename, img_pred)
-		cv2.waitKey(200)
-		cv2.destroyAllWindows()
+        cv2.imshow(filename, img_pred)
+        cv2.waitKey(200)
+        cv2.destroyAllWindows()
 
-		img_pred = img_pred.reshape(1, 784).astype('float32')
-		img_pred = img_pred / 255
-		pred = model.predict_classes(img_pred)
+        img_pred = img_pred.reshape(1, 784).astype('float32')
+        img_pred = img_pred / 255
+        pred = model.predict_classes(img_pred)
 
-		pred_proba = model.predict_proba(img_pred)
-		pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
+        pred_proba = model.predict_proba(img_pred)
+        pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
 
-		result = "incorrect"
-		if (letters[pred[0] - 1]) == filename[0:1]:
-			result = "CORRECT"
-			num_correct += 1
-		print ("Filename: " + filename + " is a " + letters[pred[0] - 1] + " " + result)
+        result = "incorrect"
+        if (letters[pred[0] - 1]) == filename[0:1]:
+            result = "CORRECT"
+            num_correct += 1
+        print ("Filename: " + filename + " is a " + letters[pred[0] - 1] + " " + result)
 
 print (str(num_correct) + " out of " + str(total_count) + " correct.")
