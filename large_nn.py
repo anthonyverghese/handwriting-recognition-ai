@@ -10,6 +10,8 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
 from keras import backend as K
 import cv2
+from keras.models import model_from_json
+import os
 
 K.set_image_dim_ordering('th')
 # fix random seed for reproducibility
@@ -28,45 +30,44 @@ y_train = np_utils.to_categorical(y_train)
 y_test = np_utils.to_categorical(y_test)
 num_classes = y_test.shape[1]
 
-# define the larger model
-def larger_model():
-	# create model
-	model = Sequential()
-	model.add(Conv2D(30, (5, 5), input_shape=(1, 28, 28), activation='relu'))
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	model.add(Conv2D(15, (3, 3), activation='relu'))
-	model.add(MaxPooling2D(pool_size=(2, 2)))
-	model.add(Dropout(0.2))
-	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
-	model.add(Dense(50, activation='relu'))
-	model.add(Dense(num_classes, activation='softmax'))
-	# Compile model
-	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-	return model
+json_file = open('large_model.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+model = model_from_json(loaded_model_json)
 
+model.load_weights("large_model.h5")
+model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
-# build the model
-model = larger_model()
-# Fit the model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=4, batch_size=200)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=0)
 print("Large CNN Error: %.2f%%" % (100-scores[1]*100))
 
 
-img_pred = cv2.imread('digits/2.png', 0);
+num_correct = 0
+total_count = 0
 
-img_pred = cv2.bitwise_not(img_pred)
+for filename in os.listdir('digits'):
+	if filename.endswith(".png"):
+		total_count += 1
+		img_pred = cv2.imread("digits/" + filename, 0);
+		img_pred = cv2.bitwise_not(img_pred)
+		img_pred = cv2.resize(img_pred, (28, 28))
 
-img_pred = cv2.resize(img_pred, (28, 28))
+		cv2.imshow(filename, img_pred)
+		cv2.waitKey(200)
+		cv2.destroyAllWindows()
 
-img_pred = img_pred.reshape(28, 28, -1)
+		img_pred = img_pred.reshape(1, 784).astype('float32')
+		img_pred = img_pred / 255
+		pred = model.predict_classes(img_pred)
 
-img_pred = img_pred.reshape(1, 1, 28, 28)
+		pred_proba = model.predict_proba(img_pred)
+		pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
 
-pred = model.predict_classes(img_pred)
-print (pred[0])
-# pred_proba = model.predict_proba(img_pred)
-# pred_proba = "% .2f %%" % (pred_proba[0][pred] * 100)
-# print (pred[0], "with probability of ", pred_proba)
+		result = "incorrect"
+		if (str(pred[0]) == filename[:1]):
+			result = "CORRECT"
+			num_correct += 1
+		print ("Filename: " + filename + " is a " + str(pred[0]) + " with probability" + str(pred_proba) + " " + result)
+
+print (str(num_correct) + " out of " + str(total_count) + " correct.")

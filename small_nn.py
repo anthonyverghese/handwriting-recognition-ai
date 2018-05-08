@@ -1,17 +1,10 @@
-#https://machinelearningmastery.com/handwritten-digit-recognition-using-convolutional-neural-networks-python-keras/
-#change line 52 to try custom examples with pictures of digits
-#haven't gotten a single example correct but w/e I guess
-#probably need to "pip install" some stuff to get it to run
-
-
-
-
 import numpy
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.utils import np_utils
+from keras.models import model_from_json
 import cv2
 import os
 
@@ -36,25 +29,18 @@ y_train = np_utils.to_categorical(y_train)
 y_test = np_utils.to_categorical(y_test)
 num_classes = y_test.shape[1]
 
-# define baseline model
-def baseline_model():
-	# create model
-	model = Sequential()
-	# model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='sigmoid'))
-	model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='relu'))
-	model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
-	# Compile model
-	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-	return model
+json_file = open('model.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+model = model_from_json(loaded_model_json)
 
-# build the model
-model = baseline_model()
-# Fit the model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=200, verbose=2)
+model.load_weights("model.h5")
+model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=0)
-print("Baseline Error: %.2f%%" % (100-scores[1]*100))
+
+print("Original baseline error: %.2f%%" % (100-scores[1]*100))
 
 num_correct = 0
 total_count = 0
@@ -67,7 +53,7 @@ for filename in os.listdir('digits'):
 		img_pred = cv2.resize(img_pred, (28, 28))
 
 		cv2.imshow(filename, img_pred)
-		cv2.waitKey(500)
+		cv2.waitKey(200)
 		cv2.destroyAllWindows()
 
 		img_pred = img_pred.reshape(1, 784).astype('float32')
@@ -81,6 +67,6 @@ for filename in os.listdir('digits'):
 		if (str(pred[0]) == filename[:1]):
 			result = "CORRECT"
 			num_correct += 1
-		print ("Filename: " + filename + " is a " + str(pred[0]) + " with probability" + str(pred_proba) + " " + result)
+		print ("Filename: " + filename + " is a " + str(pred[0]) + " " + result)
 
 print (str(num_correct) + " out of " + str(total_count) + " correct.")
