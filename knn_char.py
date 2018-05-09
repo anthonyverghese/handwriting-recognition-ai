@@ -15,6 +15,9 @@ import numpy as np
 from sklearn.decomposition import PCA
 import time
 from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+
 
 
 def svd_pca(data, k):
@@ -35,19 +38,22 @@ def knn_model(x_train,y_train,x_test,y_test,n_neighbors,pca_comp):
     pca = PCA(n_components=pca_comp)
     x_train = pca.fit_transform(x_train)
     x_test = pca.fit_transform(x_test)
+
+    x_train_pca, x_test_pca, y_train_pca, y_test_pca = train_test_split(x_train, y_train, test_size=0.2, random_state=13)
+
     model = KNeighborsClassifier(n_neighbors = n_neighbors)
     #print("start fit")
     #model = RandomForestClassifier()
-    model.fit(x_train,y_train)
+    model.fit(x_train_pca,y_train_pca)
     #print("end fit")
     start = time.time()
-    pred = model.predict(x_test)
+    pred = model.predict(x_test_pca)
     end = time.time()
     seconds = end-start
     minutes = seconds/60.
     print(str(minutes)+" minutes to predict")
     print("end model")
-    return accuracy_score(y_test,pred)
+    return accuracy_score(y_test_pca,pred)
 
 def load_data(train_path,test_path):
     # fix random seed for reproducibility
@@ -79,21 +85,48 @@ def load_data(train_path,test_path):
     x_test /= 255
     return (x_train,y_train,x_test,y_test)
 
-def main():
-    train_path = "emnist-letters-train.csv"
-    test_path = "emnist-letters-test.csv"
-    (x_train,y_train,x_test,y_test)=load_data(train_path,test_path)
-
-    components = [50, 75, 100, 125, 150, 175]
-    neighbors = [5, 6, 7, 8, 9, 10, 11]
-
+def test_neigh_and_comp(x_train,y_train,x_test,y_test):
+    '''
+    '''
+    components = [30]
+    neighbors = [5, 10, 15, 20, 25, 30, 35,40,45,50,55,60,65,70,75,80,85]
     scores = np.zeros( (components[len(components)-1]+1, neighbors[len(neighbors)-1]+1 ) )
-    for component in components:
-        for n in neighbors:
+    for n in neighbors:
+        for component in components:
             score = knn_model(x_train,y_train,x_test,y_test,n,component)
             scores[component][n] = score
             print('Components = ', component, ', neighbors = ', n,', Score = ', score)
 
+def my_svm(x_train,y_train,x_test,y_test,pca_comp):
+    '''
+    '''
+    start = time.time()
+    pca = PCA(n_components=pca_comp)
+
+    #x_train = pca.fit_transform(x_train)
+    #x_test = pca.fit_transform(x_test)
+
+    classifier = svm.SVC(C=200,kernel='rbf',gamma=0.01,cache_size=8000,probability=False)
+    y_train = np.argmax(y_train, axis=1)
+    y_test = np.argmax(y_test, axis=1)
+    print("fit classifier")
+    classifier.fit(x_train, y_train)
+    print("make predictions")
+    pred = classifier.predict(x_test)
+    end = time.time()
+    seconds = end-start
+    minutes = seconds/60.
+    print(str(minutes), " minutes to run svm")
+    return accuracy_score(y_test,pred)
+
+
+
+def main():
+    train_path = "emnist-digits-train.csv"
+    test_path = "emnist-digits-test.csv"
+    (x_train,y_train,x_test,y_test)=load_data(train_path,test_path)
+    #test_neigh_and_comp(x_train,y_train,x_test,y_test)
+    print(my_svm(x_train,y_train,x_test,y_test,5))
 '''
     pca = PCA(200)
     print(x_train.shape)
