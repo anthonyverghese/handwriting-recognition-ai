@@ -142,7 +142,7 @@ if __name__ == '__main__':
     main()
 
 
-'''
+
 # build the model
 model = baseline_model()
 # Fit the model
@@ -155,4 +155,4 @@ model_json = model.to_json()
 with open("small_model_char.json", "w") as json_file:
     json_file.write(model_json)
 model.save_weights("small_model_char.h5")
-'''
+
